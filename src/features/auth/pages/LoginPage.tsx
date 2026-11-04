@@ -42,6 +42,12 @@ export function LoginPage() {
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setError(null);
+
+        if (!email.trim() || !password) {
+            setError('Please enter your email and password.');
+            return;
+        }
+
         setIsLoading(true);
 
         try {

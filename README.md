@@ -1,8 +1,9 @@
 # Mini CRM: «Объекты и задачи»
 
 Небольшая CRM для строительной компании. Постановщик ставит задачи по объектам (стройкам), исполнители выполняют их и отправляют на проверку.
+Live Demo: https://mini-crm-zeta-one.vercel.app/login
 
-**Демо:** <ВСТАВЬТЕ_ССЫЛКУ_VERCEL>
+GitHub Repository: https://github.com/anna-paruryan/mini-crm
 
 ## Тестовые доступы
 
@@ -33,14 +34,14 @@
 ### 1. Установка
 
 ```bash
-git clone <URL_РЕПОЗИТОРИЯ>
+git clone <[URL_РЕПОЗИТОРИЯ](https://github.com/anna-paruryan/mini-crm)>
 cd mini-crm
 npm install
 ```
 
 ### 2. Проект Supabase
 
-1. Создайте проект на [supabase.com](https://supabase.com) (бесплатного тарифа достаточно).
+1. Создайте проект на [supabase.com](https://supabase.com).
 2. Откройте **SQL Editor** и выполните файл `supabase/migrations/20260101000000_init.sql` целиком.
    Он создаёт таблицы, триггеры, функцию смены статуса и политики доступа (RLS).
    (Альтернатива: `supabase link` и `supabase db push`.)
