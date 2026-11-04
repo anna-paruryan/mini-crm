@@ -6,11 +6,11 @@
 
 ## Тестовые доступы
 
-| Роль | Email | Пароль |
-|---|---|---|
-| Постановщик | manager@test.local | <ПАРОЛЬ> |
-| Исполнитель 1 | exec1@test.local | <ПАРОЛЬ> |
-| Исполнитель 2 | exec2@test.local | <ПАРОЛЬ> |
+| Роль | Email | Пароль    |
+|---|---|-----------|
+| Постановщик | manager@test.local | Exec123!  |
+| Исполнитель 1 | exec1@test.local | exectest1 |
+| Исполнитель 2 | exec2@test.local | exectest2 |
 
 ## Стек
 
