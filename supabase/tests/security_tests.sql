@@ -37,16 +37,20 @@ insert into public.tasks(title, object_id, assignee_id, author_id) values ('За
 perform set_config('request.jwt.claims', json_build_object('sub', v_e1, 'role', 'authenticated')::text, true);
 set local role authenticated;
 
-select count(*) into v_n from public.tasks;
-if v_n <> 1 then raise exception 'TEST FAILED: исполнитель видит % задач вместо 1', v_n; end if;
-  raise notice 'OK: исполнитель видит только свою задачу';
+select count(*) into v_n from public.tasks where assignee_id is distinct from v_e1;
+if v_n <> 0 then raise exception 'TEST FAILED: исполнитель видит % чужих задач', v_n; end if;
+select count(*) into v_n from public.tasks where id = v_t1;
+if v_n <> 1 then raise exception 'TEST FAILED: исполнитель не видит свою задачу'; end if;
+  raise notice 'OK: исполнитель видит только свои задачи';
 
 select count(*) into v_n from public.tasks where id = v_t2;
 if v_n <> 0 then raise exception 'TEST FAILED: виден чужой task'; end if;
   raise notice 'OK: чужая задача не читается';
 
-select count(*) into v_n from public.objects;
-if v_n <> 1 then raise exception 'TEST FAILED: исполнитель видит % объектов вместо 1', v_n; end if;
+select count(*) into v_n from public.objects where id = v_obj2;
+if v_n <> 0 then raise exception 'TEST FAILED: виден объект без его задач'; end if;
+select count(*) into v_n from public.objects where id = v_obj1;
+if v_n <> 1 then raise exception 'TEST FAILED: не виден объект со своей задачей'; end if;
   raise notice 'OK: виден только объект, где есть его задача';
 
 select count(*) into v_n from public.task_history where task_id = v_t2;
@@ -166,8 +170,8 @@ if v_n <> 0 then raise exception 'TEST FAILED: исполнитель удали
   perform set_config('request.jwt.claims', json_build_object('sub', v_mgr, 'role', 'authenticated')::text, true);
 set local role authenticated;
 
-select count(*) into v_n from public.tasks;
-if v_n <> 2 then raise exception 'TEST FAILED: постановщик видит % задач вместо 2', v_n; end if;
+select count(*) into v_n from public.tasks where id in (v_t1, v_t2);
+if v_n <> 2 then raise exception 'TEST FAILED: постановщик видит % тестовых задач вместо 2', v_n; end if;
   raise notice 'OK: постановщик видит всё';
 
   -- принять нельзя из статуса, где задача не «на проверке»

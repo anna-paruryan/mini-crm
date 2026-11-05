@@ -7,14 +7,14 @@ export type TaskStatus =
     | 'in_progress'
     | 'in_review'
     | 'accepted'
-    | 'rework';
+    | 'needs_rework';
 
 export const STATUS_LABEL: Record<TaskStatus, string> = {
     new: 'New',
     in_progress: 'In Progress',
     in_review: 'In Review',
     accepted: 'Accepted',
-    rework: 'Needs Rework',
+    needs_rework: 'Needs Rework',
 };
 
 interface Transition {
@@ -47,14 +47,14 @@ const TRANSITIONS: Transition[] = [
     },
     {
         from: 'in_review',
-        to: 'rework',
+        to: 'needs_rework',
         actor: 'manager',
         label: 'Request Rework',
         commentRequired: true,
         variant: 'danger',
     },
     {
-        from: 'rework',
+        from: 'needs_rework',
         to: 'in_progress',
         actor: 'assignee',
         label: 'Start Working',
