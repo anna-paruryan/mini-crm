@@ -35,16 +35,17 @@ export default function ObjectDetailsPage() {
         refetch: refetchObject,
     } = useQuery<ConstructionObject>({
         queryKey: ['object', objectId],
-        queryFn: async () => {
-            const { data, error } = await supabase
-                .from('objects')
-                .select('id, name, address')
-                .eq('id', objectId!)
-                .single();
+            queryFn: async () => {
+                const { data, error } = await supabase
+                    .from('objects')
+                    .select('id, name, address')
+                    .eq('id', objectId!)
+                    .maybeSingle();
 
-            if (error) throw error;
-            return data;
-        },
+                if (error) throw error;
+                if (!data) throw new Error('Construction site not found or you do not have access to it.');
+                return data;
+            },
         enabled: !!objectId,
     });
 

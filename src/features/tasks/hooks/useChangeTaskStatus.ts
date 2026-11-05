@@ -5,14 +5,17 @@ import { changeTaskStatus } from '../api/tasks.api';
 
 export function useChangeTaskStatus(taskId: string) {
     const qc = useQueryClient();
+
     return useMutation({
         mutationFn: changeTaskStatus,
         onSuccess: () => {
-            toast.success('Статус обновлён');
+            toast.success('Status updated');
+
             qc.invalidateQueries({ queryKey: ['task', taskId] });
             qc.invalidateQueries({ queryKey: ['task-history', taskId] });
             qc.invalidateQueries({ queryKey: ['tasks'] });
         },
-        onError: (e: Error) => toast.error(e.message || 'Не удалось сменить статус'),
+        onError: (e: Error) =>
+            toast.error(e.message || 'Failed to update status'),
     });
 }

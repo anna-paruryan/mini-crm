@@ -9,7 +9,6 @@ import type {
     TaskInput,
     HistoryItem,
 } from '../model/types';
-import type { TaskStatus } from '../model/transitions';
 
 const TASK_SELECT = `
     *,
@@ -58,12 +57,16 @@ export const useTask = (taskId: string) =>
                 .from('tasks')
                 .select(TASK_SELECT)
                 .eq('id', taskId)
-                .single();
+                .maybeSingle();
 
             if (error) throw error;
+            if (!data) {
+                throw new Error('Task not found or you do not have access to it.');
+            }
             return data as Task;
         },
         enabled: !!taskId,
+        retry: false,
     });
 
 export const useTaskHistory = (taskId: string) =>
@@ -108,7 +111,8 @@ function useInvalidateTasks() {
     };
 }
 
-const onError = (error: Error) => {
+// Supabase выбрасывает PostgrestError (не instanceof Error), поэтому читаем только message
+const onError = (error: { message?: string }) => {
     toast.error(error.message || 'Request failed');
 };
 
@@ -146,20 +150,6 @@ async function updateTask(id: string, input: TaskInput): Promise<Task> {
 
 async function deleteTask(id: string): Promise<void> {
     const { error } = await supabase.from('tasks').delete().eq('id', id);
-    if (error) throw error;
-}
-
-async function changeTaskStatus(input: {
-    taskId: string;
-    to: TaskStatus;
-    comment?: string;
-}): Promise<void> {
-    const { error } = await supabase.rpc('change_task_status', {
-        p_task_id: input.taskId,
-        p_new_status: input.to, // имя параметра как в SQL-функции
-        p_comment: input.comment?.trim() || null,
-    });
-
     if (error) throw error;
 }
 
@@ -203,15 +193,4 @@ export function useDeleteTask() {
     });
 }
 
-export function useChangeTaskStatus() {
-    const invalidate = useInvalidateTasks();
-
-    return useMutation({
-        mutationFn: changeTaskStatus,
-        onSuccess: () => {
-            toast.success('Status updated');
-            invalidate();
-        },
-        onError,
-    });
-}
+// Смена статуса: см. hooks/useChangeTaskStatus.ts (вызывает RPC change_task_status)
