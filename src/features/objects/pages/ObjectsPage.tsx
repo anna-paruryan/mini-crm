@@ -1,10 +1,11 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Building2, MapPin, Plus, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
+
 import { supabase } from '../../../lib/supabase/client';
-import {useState} from "react";
-import {SiteFormModal} from "../components/SiteFromModal.tsx";
+import { useAuth } from '../../auth/hooks/useAuth';
+import { SiteFormModal } from '../components/SiteFromModal.tsx';
 
 interface ConstructionObject {
     id: string;
@@ -13,6 +14,10 @@ interface ConstructionObject {
 }
 
 export default function ObjectsPage() {
+    const { profile } = useAuth();
+    const isManager = profile?.role === 'manager';
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     const {
         data: objects = [],
         isLoading,
@@ -32,7 +37,7 @@ export default function ObjectsPage() {
             return data ?? [];
         },
     });
-    const [isModalOpen, setIsModalOpen] = useState(false);
+
     return (
         <div className="min-h-full bg-slate-50 p-6 lg:p-8">
             <div className="mx-auto max-w-7xl space-y-8">
@@ -43,18 +48,22 @@ export default function ObjectsPage() {
                             Construction Sites
                         </h1>
                         <p className="mt-1 text-sm text-slate-500">
-                            Manage your construction projects and track their progress.
+                            {isManager
+                                ? 'Manage your construction projects and track their progress.'
+                                : 'Construction sites where you have assigned tasks.'}
                         </p>
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={() => setIsModalOpen(true)}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
-                    >
-                        <Plus size={18} />
-                        Add Site
-                    </button>
+                    {isManager && (
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(true)}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+                        >
+                            <Plus size={18} />
+                            Add Site
+                        </button>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -76,11 +85,11 @@ export default function ObjectsPage() {
                 <section>
                     <div className="mb-4 flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-slate-900">
-                            All Construction Sites
+                            {isManager ? 'All Construction Sites' : 'Your Construction Sites'}
                         </h2>
                         <span className="text-sm text-slate-500">
-              {objects.length} sites
-            </span>
+                            {objects.length} sites
+                        </span>
                     </div>
 
                     {isLoading && (
@@ -92,7 +101,8 @@ export default function ObjectsPage() {
                     {isError && (
                         <div className="rounded-xl border border-red-200 bg-white p-8 text-center">
                             <p className="text-sm text-red-600">
-                                {error instanceof Error ? error.message : 'Failed to load construction sites.'}
+                                {(error as { message?: string } | null)?.message ??
+                                    'Failed to load construction sites.'}
                             </p>
 
                             <button
@@ -115,7 +125,9 @@ export default function ObjectsPage() {
                             </h3>
 
                             <p className="mt-2 text-sm text-slate-500">
-                                Construction sites will appear here once they are created.
+                                {isManager
+                                    ? 'Construction sites will appear here once they are created.'
+                                    : 'Sites will appear here once tasks are assigned to you.'}
                             </p>
                         </div>
                     )}
@@ -134,8 +146,8 @@ export default function ObjectsPage() {
                                         </div>
 
                                         <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-                      Active
-                    </span>
+                                            Active
+                                        </span>
                                     </div>
 
                                     <h3 className="mt-5 text-lg font-semibold text-slate-900 group-hover:text-blue-600">
@@ -156,7 +168,8 @@ export default function ObjectsPage() {
                     )}
                 </section>
             </div>
-            {isModalOpen && (
+
+            {isManager && isModalOpen && (
                 <SiteFormModal onClose={() => setIsModalOpen(false)} />
             )}
         </div>

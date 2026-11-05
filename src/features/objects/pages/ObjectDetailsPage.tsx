@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -11,6 +10,7 @@ import {
 } from 'lucide-react';
 
 import { supabase } from '../../../lib/supabase/client';
+import { useAuth } from '../../auth/hooks/useAuth';
 import { useTasksByObject } from '../../tasks/hooks/useTasks';
 import { TaskFormModal } from '../../tasks/components/TaskFormModal';
 import { TaskStatusBadge } from '../../tasks/components/TaskStatusBadge';
@@ -23,6 +23,8 @@ interface ConstructionObject {
 
 export default function ObjectDetailsPage() {
     const { objectId } = useParams<{ objectId: string }>();
+    const { profile } = useAuth();
+    const isManager = profile?.role === 'manager';
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const {
@@ -66,9 +68,8 @@ export default function ObjectDetailsPage() {
         return (
             <div className="p-8 text-center">
                 <p className="text-red-600">
-                    {objectError instanceof Error
-                        ? objectError.message
-                        : 'Construction site not found.'}
+                    {(objectError as { message?: string } | null)?.message ??
+                        'Construction site not found.'}
                 </p>
 
                 <button
@@ -102,8 +103,8 @@ export default function ObjectDetailsPage() {
                                 </div>
 
                                 <span className="text-sm font-medium text-blue-600">
-                  Construction Site
-                </span>
+                                    Construction Site
+                                </span>
                             </div>
 
                             <h1 className="mt-5 text-2xl font-bold text-slate-900">
@@ -116,13 +117,15 @@ export default function ObjectDetailsPage() {
                             </p>
                         </div>
 
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
-                        >
-                            <Plus size={18} />
-                            Create Task
-                        </button>
+                        {isManager && (
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+                            >
+                                <Plus size={18} />
+                                Create Task
+                            </button>
+                        )}
                     </div>
                 </section>
 
@@ -133,13 +136,15 @@ export default function ObjectDetailsPage() {
                                 Tasks
                             </h2>
                             <p className="mt-1 text-sm text-slate-500">
-                                All tasks assigned to this construction site.
+                                {isManager
+                                    ? 'All tasks of this construction site.'
+                                    : 'Your tasks at this construction site.'}
                             </p>
                         </div>
 
                         <span className="text-sm text-slate-500">
-              {tasks.length} tasks
-            </span>
+                            {tasks.length} tasks
+                        </span>
                     </div>
 
                     {isTasksLoading && (
@@ -151,9 +156,8 @@ export default function ObjectDetailsPage() {
                     {isTasksError && (
                         <div className="rounded-xl border border-red-200 bg-white p-8 text-center">
                             <p className="text-sm text-red-600">
-                                {tasksError instanceof Error
-                                    ? tasksError.message
-                                    : 'Failed to load tasks.'}
+                                {(tasksError as { message?: string } | null)?.message ??
+                                    'Failed to load tasks.'}
                             </p>
 
                             <button
@@ -178,16 +182,20 @@ export default function ObjectDetailsPage() {
                             </h3>
 
                             <p className="mt-2 text-sm text-slate-500">
-                                Create the first task for this construction site.
+                                {isManager
+                                    ? 'Create the first task for this construction site.'
+                                    : 'No tasks are assigned to you at this construction site.'}
                             </p>
 
-                            <button
-                                onClick={() => setIsModalOpen(true)}
-                                className="mt-5 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
-                            >
-                                <Plus size={18} />
-                                Create Task
-                            </button>
+                            {isManager && (
+                                <button
+                                    onClick={() => setIsModalOpen(true)}
+                                    className="mt-5 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+                                >
+                                    <Plus size={18} />
+                                    Create Task
+                                </button>
+                            )}
                         </div>
                     )}
 
@@ -229,7 +237,7 @@ export default function ObjectDetailsPage() {
                 </section>
             </div>
 
-            {isModalOpen && (
+            {isManager && isModalOpen && (
                 <TaskFormModal
                     objectId={object.id}
                     onClose={() => setIsModalOpen(false)}
